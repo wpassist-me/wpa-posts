@@ -29,7 +29,7 @@ function wpa_posts_create_section_tax() {
     'section',
     'post',
     array(
-      'label' => __( 'section' ),
+      'label' => __( 'Sections' ),
       'rewrite' => false,
       'hierarchical' => true,
       'publicly_queryable' => false,
