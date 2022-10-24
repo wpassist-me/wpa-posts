@@ -4,7 +4,7 @@ WordPress plugin to display posts lists or posts grid using intelligent filters
 
 ## Usage
 
-- Download latest version from github
+- [Download latest version from github](https://github.com/wpassist-me/wpa-posts/releases/latest)
 - Install the plugin and activate
 - Go to Widgets screen or Customizer to insert the widget
 - Update options as necessary
