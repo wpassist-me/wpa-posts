@@ -57,20 +57,33 @@ function wpa_posts_featured_image( $class="thmb", $size="medium" ){
 
   if( $featured_image ):
     if( wpa_posts_is_amp() ):
-      ?><amp-img class="<?php echo $class; ?>" alt="<?php the_title_attribute(); ?>"
+      ?><div class="<?php echo $class; ?>"><amp-img alt="<?php the_title_attribute(); ?>"
         src="<?php echo $featured_image[0]; ?>"
         width="414"
         height="260"
         layout="responsive">
-      </amp-img><?php
+      </amp-img></div><?php
     else:
+      echo "<div class=\"{$class}\">";
       the_post_thumbnail( 
         $size, 
         [
-          'class' => $class, 
           'title' => the_title_attribute( 'echo=0' ) 
         ] 
       );
+      echo "</div>";
+    endif;
+  else:
+    if( wpa_posts_is_amp() ):
+      ?><div class="<?php echo $class; ?>"><amp-img alt="<?php the_title_attribute(); ?>"
+        src="data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw=="
+        width="414"
+        height="260"
+        layout="responsive">
+      </amp-img></div><?php
+    else:
+      echo "<div class=\"{$class}\"><img src=\"data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==
+\" title=\"". the_title_attribute( 'echo=0' ) ."\"></div>";
     endif;
   endif;
 }
