@@ -32,3 +32,8 @@ require_once __DIR__ . '/wpa-posts-taxonomies.php';
 // register widgets
 require_once __DIR__ . '/wpa-posts-widget.php';
 
+add_action( 'wp_enqueue_scripts', 'wpa_posts_assets' );
+function wpa_posts_assets() {
+  wp_register_style( 'wpa-posts', plugins_url( '/wpa-posts.css' , __FILE__ ) );
+  wp_enqueue_style( 'wpa-posts' );
+}
