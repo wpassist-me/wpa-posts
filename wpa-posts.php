@@ -18,9 +18,9 @@
  * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
  */
- 
+
 if ( ! defined( 'ABSPATH' ) ) {
-	die( 'Invalid request.' );
+  die( 'Invalid request.' );
 }
 
 // utility functions
