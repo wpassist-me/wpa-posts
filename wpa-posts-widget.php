@@ -105,7 +105,7 @@ class WPA_Posts_Widget extends WP_Widget {
 if( 'grid' == $layout ){
 
 $wrap_class = $wrap_class == '' ? 'flex lhs' : $wrap_class;
-$item_class = $item_class == '' ? 'md-c1_2 mbs' : $item_class;
+$item_class = $item_class == '' ? 'md-c1_2 mb1' : $item_class;
 
 ///// GRID /////
 ?>
