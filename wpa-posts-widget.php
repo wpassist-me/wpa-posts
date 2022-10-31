@@ -167,6 +167,8 @@ while ( $posts->have_posts() ){
 
     } /* if ( $posts->have_posts() ) */
 
+    wp_reset_postdata();
+
     echo $after_widget;
   }
 
