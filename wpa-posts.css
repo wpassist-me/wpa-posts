@@ -31,7 +31,7 @@
   .d-md-none{display:none}
 }
 
-.thmb, .thmb-s{background:#ddd}
+.thmb, .thmb-s{background-color:#ddd}
 .thmb, .thmb-s{overflow:hidden}
 .thmb{aspect-ratio:16/9}
 .thmb-s{aspect-ratio:1/1;width:60px}

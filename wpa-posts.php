@@ -6,7 +6,7 @@
  * Author: Metin Saylan
  * Author URI: https://wpassist.me
  *
- * Version: 20221024
+ * Version: 20230909
  * Text Domain: wpa-posts
  *
  * License:     GPLv2 or later
@@ -31,6 +31,9 @@ require_once __DIR__ . '/wpa-posts-taxonomies.php';
 
 // register widgets
 require_once __DIR__ . '/wpa-posts-widget.php';
+
+// register widgets
+require_once __DIR__ . '/wpa-posts-filters.php';
 
 add_action( 'wp_enqueue_scripts', 'wpa_posts_assets' );
 function wpa_posts_assets() {
