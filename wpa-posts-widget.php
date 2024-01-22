@@ -5,6 +5,27 @@ function wpa_posts_register_posts_widget() {
   register_widget( 'WPA_Posts_Widget' );
 }
 
+
+function wpa_posts_meta_line_allowed_html(){
+  return array(
+      'a'      => array(
+        'class'  => array(),
+        'target'  => array(),
+        'href'  => array(),
+        'title' => array(),
+      ),
+      'br'     => array(),
+      'em'     => array(),
+      'strong' => array(),
+      'small' => array(),
+      'p' => array(
+        'class' => array(),
+      ),
+    );
+}
+
+
+
 class WPA_Posts_Widget extends WP_Widget {
 
   function __construct() {
@@ -18,7 +39,12 @@ class WPA_Posts_Widget extends WP_Widget {
         'order' => 'DESC',
         'item_class' => '',
         'wrap_class' => '',
-        'display_date' => 'off',
+        'feature_wrap_class' => '',
+        'display_excerpt' => 'off',
+        'meta_line' => '<small>%term:category% - %updated%</small>',
+        'link_on_excerpt' => 'off',
+        'excerpt_length' => 55,
+        'title_element' => 'h3',
         'image_size' => 'thumbnail',
         'post_type' => 'post',
         'offset' => false,
@@ -28,6 +54,7 @@ class WPA_Posts_Widget extends WP_Widget {
       'List' => 'list',
       'List w/ Thumbs' => 'list-with-thumbs',
       'Grid' => 'grid',
+      'Post with Excerpt' => 'post-with-excerpt',
     );
 
     $this->order_options = array(
@@ -65,13 +92,24 @@ class WPA_Posts_Widget extends WP_Widget {
       'Large' => 'large',
       'Full' => 'full',
     );
+    
+    $this->title_elements = array(
+      'H1' => 'h1',
+      'H2' => 'h2',
+      'H3' => 'h3',
+      'H4' => 'h4',
+      'span' => 'span',
+      'div' => 'div',
+    );
 
   }
 
   function widget( $args, $instance ) {
+    global $wpa_posts_widget_args;
 
     extract( $args );
     $widget_options = wp_parse_args( $instance, $this->widget_defaults );
+    $wpa_posts_widget_args = $widget_options;
     extract( $widget_options, EXTR_SKIP );
 
     echo $before_widget;
@@ -108,68 +146,7 @@ class WPA_Posts_Widget extends WP_Widget {
       if ( '' !== $title )
         echo $before_title . $title . $after_title;
 
-if( 'grid' == $layout ){
-
-$wrap_class = $wrap_class == '' ? 'flex lhs' : $wrap_class;
-$item_class = $item_class == '' ? 'md-c1_2 mb1' : $item_class;
-
-///// GRID /////
-?>
-<ul class="<?php echo $wrap_class; ?>">
-<?php
-  while ( $posts->have_posts() ){
-    $posts->the_post(); ?>
-<li class="<?php echo $item_class; ?>">
-<a class="d-block" href="<?php the_permalink(); ?>">
-<?php wpa_posts_featured_image( 'thmb mbs', $image_size ); ?>
-<?php the_title(); ?><?php wpa_posts_the_date( $display_date ); ?></a>
-</li>
-<?php
-  }
-?>
-</ul>
-<?php
-///// GRID /////
-
-} elseif( 'list-with-thumbs' == $layout ) {
-
-///// LIST with THUMBS /////
-
-$wrap_class = $wrap_class == '' ? 'lhs' : $wrap_class;
-$item_class = $item_class == '' ? 'flex mbs' : $item_class;
-
-?>
-<ul class="<?php echo $wrap_class; ?>">
-<?php
-  while ( $posts->have_posts() ){
-    $posts->the_post(); ?>
-<li class="<?php echo $item_class; ?>">
-<a href="<?php the_permalink(); ?>"><?php wpa_posts_featured_image('thmb-s', $image_size); ?></a><div class='fill pxs'><a href="<?php the_permalink(); ?>"><?php the_title(); ?></a><?php wpa_posts_the_date( $display_date ); ?></div>
-</li>
-<?php
-  }
-?>
-</ul>
-<?php
-///// GRID /////
-
-} else { /* display list by default */
-
-$item_class = $item_class == '' ? 'flex mbs' : $item_class;
-
-?>
-<ul class="<?php echo $wrap_class; ?>">
-<?php
-while ( $posts->have_posts() ){
-  $posts->the_post(); ?>
-<li class="<?php echo $item_class; ?>"><a class="d-block" href="<?php the_permalink(); ?>"><?php the_title(); ?><?php wpa_posts_the_date( $display_date ); ?></a></li>
-<?php
-} /* while ( $posts->have_posts() ) */
-?>
-</ul>
-<?php
-
-} /* layout switch */
+      include_once( 'layouts/layout-' . $layout . '.php' );
 
     } /* if ( $posts->have_posts() ) */
 
@@ -209,7 +186,7 @@ while ( $posts->have_posts() ){
  ?>
     </select></label></p>
 
-    <p><label for="<?php echo $this->get_field_id('display_date'); ?>"><input class="widefat" id="<?php echo $this->get_field_id('display_date'); ?>" name="<?php echo $this->get_field_name('display_date'); ?>" type="checkbox" value="on" <?php checked( $display_date, "on" ) ?>/> <?php _e('Display date'); ?></label></p>
+    <p><label for="<?php echo $this->get_field_id('link_on_excerpt'); ?>"><input class="widefat" id="<?php echo $this->get_field_id('link_on_excerpt'); ?>" name="<?php echo $this->get_field_name('link_on_excerpt'); ?>" type="checkbox" value="on" <?php checked( $link_on_excerpt, "on" ) ?>/> <?php _e('Link on Excerpt'); ?></label></p>
 
 <?php 
 
@@ -230,6 +207,7 @@ $post_types = get_post_types( array(
   }
  ?>
     </select></label></p>
+
     <p><label for="<?php echo $this->get_field_id('layout'); ?>"><?php _e('Layout:'); ?> <select name="<?php echo $this->get_field_name('layout'); ?>" id="<?php echo $this->get_field_id('layout'); ?>" >
     <?php
 
@@ -282,12 +260,34 @@ $post_types = get_post_types( array(
   }
  ?>
     </select></label></p>
+    
+    <p><label for="<?php echo $this->get_field_id('meta_line'); ?>"><?php _e('Meta Line :'); ?><input class="widefat" id="<?php echo $this->get_field_id('meta_line'); ?>" name="<?php echo $this->get_field_name('meta_line'); ?>" type="text" value="<?php echo wp_kses(
+    $meta_line,
+    wpa_posts_meta_line_allowed_html() ); ?>" /></label></p>
+
+    <p><label for="<?php echo $this->get_field_id('wrap_class'); ?>"><?php _e('Wrap Class :'); ?><input class="widefat" id="<?php echo $this->get_field_id('wrap_class'); ?>" name="<?php echo $this->get_field_name('wrap_class'); ?>" type="text" value="<?php echo esc_html($wrap_class); ?>" /></label></p>
 
     <p><label for="<?php echo $this->get_field_id('item_class'); ?>"><?php _e('Item Class :'); ?><input class="widefat" id="<?php echo $this->get_field_id('item_class'); ?>" name="<?php echo $this->get_field_name('item_class'); ?>" type="text" value="<?php echo esc_html($item_class); ?>" /></label></p>
 
-    <p><label for="<?php echo $this->get_field_id('wrap_class'); ?>"><?php _e('Wrap Class :'); ?><input class="widefat" id="<?php echo $this->get_field_id('wrap_class'); ?>" name="<?php echo $this->get_field_name('wrap_class'); ?>" type="text" value="<?php echo esc_html($wrap_class); ?>" /></label></p>
-    
-    <p><label for="<?php echo $this->get_field_id('offset'); ?>"><?php _e('Offset :'); ?><input class="widefat" id="<?php echo $this->get_field_id('offset'); ?>" name="<?php echo $this->get_field_name('offset'); ?>" type="text" value="<?php echo esc_html($offset); ?>" /></label></p>
+    <p><label for="<?php echo $this->get_field_id('feature_wrap_class'); ?>"><?php _e('Feature Wrap Class :'); ?><input class="widefat" id="<?php echo $this->get_field_id('feature_wrap_class'); ?>" name="<?php echo $this->get_field_name('feature_wrap_class'); ?>" type="text" value="<?php echo esc_html($feature_wrap_class); ?>" /></label></p>
+
+    <p><label for="<?php echo $this->get_field_id('offset'); ?>"><?php _e('Offset :'); ?><input class="widefat" id="<?php echo $this->get_field_id('offset'); ?>" name="<?php echo $this->get_field_name('offset'); ?>" type="number" value="<?php echo esc_html($offset); ?>" /></label></p>
+
+    <p><label for="<?php echo $this->get_field_id('excerpt_length'); ?>"><?php _e('Excerpt Length :'); ?><input class="widefat" id="<?php echo $this->get_field_id('excerpt_length'); ?>" name="<?php echo $this->get_field_name('excerpt_length'); ?>" type="number" value="<?php echo esc_html($excerpt_length); ?>" /></label></p>
+
+    <p><label for="<?php echo $this->get_field_id('title_element'); ?>"><?php _e('Title element:'); ?> <select name="<?php echo $this->get_field_name('title_element'); ?>" id="<?php echo $this->get_field_id('title_element'); ?>" >
     <?php
+
+  foreach ($this->title_elements as $value=>$key) {
+    $option = '<option value="'. $key .'" '. ( $key === $title_element ? ' selected="selected"' : '' ) .'>';
+    $option .= $value;
+    $option .= '</option>\n';
+    echo $option;
+  }
+ ?>
+    </select></label></p>
+
+    <?php
+
   }
 }

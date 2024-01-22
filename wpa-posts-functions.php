@@ -2,12 +2,116 @@
 
 
 // echo post date on widget - filter: wpa_posts_date
-function wpa_posts_the_date( $display_date = "off" ){
+function wpa_posts_the_date( $display_date = false, $before = '<small>', $after='</small>' ){
 
   if( "on" == $display_date ): 
-    echo apply_filters( "wpa_posts_date", "<br><small>" . get_the_time( get_option( 'date_format' ) ) . "</small>" );
+    echo apply_filters( "wpa_posts_date", "{$before}" . get_the_time( get_option( 'date_format' ) ) . "{$after}" );
   endif;
 
+}
+
+// %author%, %term:category%, %published%, %updated%
+function wpa_posts_the_meta( $meta_line ){
+  if( empty($meta_line) ){ return; }
+  
+  $replacements = array(
+    '%author%' => get_the_author_meta( 'display_name' ),
+    '%published%' => get_the_date(),
+    '%updated%' => get_the_modified_date(),
+  );
+  
+  foreach( $replacements as $s=>$r ){
+    if( false !== stripos( $meta_line, $s ) ){
+      $meta_line = str_replace( $s, $r, $meta_line );
+    }
+  }
+
+  // replace term link
+  if( false !== stripos( $meta_line, '%term:' ) ){
+    preg_match('/%term:(.*?)%/', $meta_line, $matches );
+    if( is_array( $matches ) && count($matches) > 1 ){
+      $taxonomy = $matches[1];
+      $term_link = wpa_posts_get_single_term_link( $taxonomy );
+      $meta_line = str_replace( $matches[0], $term_link, $meta_line );
+    }
+
+  }
+
+  echo wp_kses(
+    $meta_line,
+    wpa_posts_meta_line_allowed_html() );
+}
+
+
+function wpa_posts_the_term( $display = false, $taxonomy = 'category', $before = '', $after = '' ){
+  if( "on" === $display ){
+    wpa_posts_single_term_link( $taxonomy, $before, $after );
+  }
+}
+
+
+function wpa_posts_get_single_term( $taxonomy, $post_id = false ){
+  if( !$post_id ) $post_id = get_the_ID();
+  $terms = get_the_terms( $post_id, $taxonomy );
+  if( !$terms ) return false;
+  if( !is_array( $terms ) ) return false;
+  return $terms[0];
+}
+
+
+function wpa_posts_single_term_link( $taxonomy, $prefix="", $suffix="" ){
+  echo wpa_posts_get_single_term_link( $taxonomy, $prefix, $suffix );
+}
+
+
+function wpa_posts_get_single_term_link( $taxonomy, $prefix="", $suffix="" ){
+  $term = wpa_posts_get_single_term( $taxonomy );
+  if( $term ){
+    $term_link = get_term_link( $term->term_id );
+    return "<a href='{$term_link}'>{$prefix}{$term->name}{$suffix}</a>";
+  }
+}
+
+
+function wpa_posts_the_excerpt( $before, $after, $link_on_excerpt = false, $words_count = 25 ){
+  $excerpt = wpa_posts_get_the_excerpt( $words_count );
+  if(!empty($excerpt)){
+    $link_open='';
+    $link_close='';
+    if( $link_on_excerpt == "on" ){
+      $link = get_the_permalink();
+      $link_open = "<a href=\"{$link}\">";
+      $link_close = "</a>";
+    }
+    echo "{$before}{$link_open}{$excerpt}{$link_close}{$after}";
+  }
+}
+
+
+function wpa_posts_get_the_excerpt( $words_count = 25 ){
+  global $post;
+  
+  $words_count = intval( $words_count );
+
+  $content_empty = (strlen( $post->post_content ) === 0);
+  $excerpt_empty = (strlen( $post->post_excerpt ) === 0);
+
+  if ( $content_empty && $excerpt_empty ){ return ''; }
+
+  if( !$excerpt_empty ){
+    $description = $post->post_excerpt;
+  } else {
+    $description = do_shortcode( $post->post_content );
+  }
+  
+  $urls_regex = '/https:\/\/[a-zA-Z0-9]+\.[a-zA-Z0-9]{2,8}((\/[a-zA-Z0-9?_=%&\.#;-]+)+)?/';
+  $description = preg_replace( $urls_regex, '', $description );
+  $description = strip_tags( $description );
+  $description = strip_shortcodes( $description );
+  $description = str_replace( array("\n", "\r", "\t"), ' ', $description );
+  $description = wp_trim_words( $description, $words_count );
+
+  return $description;
 }
 
 
