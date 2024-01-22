@@ -20,6 +20,8 @@ class WPA_Posts_Widget extends WP_Widget {
         'wrap_class' => '',
         'display_date' => 'off',
         'image_size' => 'thumbnail',
+        'post_type' => 'post',
+        'offset' => false,
       );
 
     $this->layout_options = array(
@@ -75,10 +77,14 @@ class WPA_Posts_Widget extends WP_Widget {
     echo $before_widget;
 
     $post_query = array(
-        'post_type'=>'post',
+        'post_type'=>$post_type,
         'posts_per_page'=>$count,
         'ignore_sticky_posts' => 1,
       );
+
+    if( false !== $offset ){
+      $post_query["offset"] = $offset;
+    }
 
     if( 'recent' !== $section && '' !== $section ){
       $post_query["tax_query"] = array(
@@ -204,6 +210,26 @@ while ( $posts->have_posts() ){
     </select></label></p>
 
     <p><label for="<?php echo $this->get_field_id('display_date'); ?>"><input class="widefat" id="<?php echo $this->get_field_id('display_date'); ?>" name="<?php echo $this->get_field_name('display_date'); ?>" type="checkbox" value="on" <?php checked( $display_date, "on" ) ?>/> <?php _e('Display date'); ?></label></p>
+
+<?php 
+
+$post_types = get_post_types( array(
+     'public'   => true
+  ), 'objects', 'and' );
+
+?>
+
+<p><label for="<?php echo $this->get_field_id('post_type'); ?>"><?php _e('Post Type:'); ?> <select name="<?php echo $this->get_field_name('post_type'); ?>" id="<?php echo $this->get_field_id('post_type'); ?>" >
+    <?php
+
+  foreach ($post_types as $key => $cpt) {
+    $option = '<option value="'. $key .'" '. ( $key === $post_type ? ' selected="selected"' : '' ) .'>';
+    $option .= $cpt->label;
+    $option .= '</option>\n';
+    echo $option;
+  }
+ ?>
+    </select></label></p>
     <p><label for="<?php echo $this->get_field_id('layout'); ?>"><?php _e('Layout:'); ?> <select name="<?php echo $this->get_field_name('layout'); ?>" id="<?php echo $this->get_field_id('layout'); ?>" >
     <?php
 
@@ -260,6 +286,8 @@ while ( $posts->have_posts() ){
     <p><label for="<?php echo $this->get_field_id('item_class'); ?>"><?php _e('Item Class :'); ?><input class="widefat" id="<?php echo $this->get_field_id('item_class'); ?>" name="<?php echo $this->get_field_name('item_class'); ?>" type="text" value="<?php echo esc_html($item_class); ?>" /></label></p>
 
     <p><label for="<?php echo $this->get_field_id('wrap_class'); ?>"><?php _e('Wrap Class :'); ?><input class="widefat" id="<?php echo $this->get_field_id('wrap_class'); ?>" name="<?php echo $this->get_field_name('wrap_class'); ?>" type="text" value="<?php echo esc_html($wrap_class); ?>" /></label></p>
+    
+    <p><label for="<?php echo $this->get_field_id('offset'); ?>"><?php _e('Offset :'); ?><input class="widefat" id="<?php echo $this->get_field_id('offset'); ?>" name="<?php echo $this->get_field_name('offset'); ?>" type="text" value="<?php echo esc_html($offset); ?>" /></label></p>
     <?php
   }
 }
